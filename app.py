@@ -66,33 +66,18 @@ def main():
         st.sidebar.markdown(f"**{category}**")
         for metric in category_metrics:
             if st.sidebar.checkbox(metric):
-                selected_metrics.append(metric)
-
-    # Debugging: Print selected metrics
-    st.sidebar.write("Selected Metrics:", selected_metrics)
+                selected_metrics.append((metric, category_metrics[metric]))
 
     # Display input fields and calculate results
-    for metric in selected_metrics:
-        # Locate the metric and its details
-        for category, category_metrics in metrics.items():
-            if metric in category_metrics:
-                metric_details = category_metrics[metric]
-                break
-        else:
-            st.error(f"Metric '{metric}' not found!")
-            continue
-
-        # Display formula and description
+    for metric, details in selected_metrics:
         st.markdown(f"### {metric}")
-        st.write(f"**Formula:** {metric_details['formula']}")
-        st.write(f"**Description:** {metric_details['description']}")
+        st.write(f"**Formula:** {details['formula']}")
+        st.write(f"**Description:** {details['description']}")
 
-        # Input fields for the metric
         inputs = {}
-        for input_field in metric_details["inputs"]:
+        for input_field in details["inputs"]:
             inputs[input_field] = st.number_input(input_field, value=0.0, key=f"{metric}_{input_field}")
 
-        # Calculate and display the result
         if st.button(f"Calculate {metric}", key=f"calculate_{metric}"):
             result = calculate_metric(metric, inputs)
             if result is not None:
