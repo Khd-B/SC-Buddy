@@ -115,6 +115,9 @@ def main():
             if st.sidebar.checkbox(metric):
                 selected_metrics.append(metric)
 
+    # Debugging: Print selected metrics
+    st.sidebar.write("Selected Metrics:", selected_metrics)
+
     # Display input fields and calculate results
     for metric in selected_metrics:
         st.markdown(f"### {metric}")
@@ -123,9 +126,9 @@ def main():
 
         inputs = {}
         for input_field in metrics[metric]['inputs']:
-            inputs[input_field] = st.number_input(input_field, value=0.0)
+            inputs[input_field] = st.number_input(input_field, value=0.0, key=f"{metric}_{input_field}")
 
-        if st.button(f"Calculate {metric}"):
+        if st.button(f"Calculate {metric}", key=f"calculate_{metric}"):
             result = calculate_metric(metric, inputs)
             st.success(f"**Result:** {result}")
 
