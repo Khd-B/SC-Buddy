@@ -38,6 +38,44 @@ metrics = {
     }
 }
 
+# Streamlit App
+def main():
+    st.title("SC Buddy - Supply Chain Calculator")
+    st.sidebar.header("Select Metrics")
+
+    # Checkbox for selecting metrics
+    selected_metrics = []
+    for category, category_metrics in metrics.items():
+        st.sidebar.markdown(f"**{category}**")
+        for metric_name, metric_details in category_metrics.items():
+            if st.sidebar.checkbox(metric_name):
+                selected_metrics.append((metric_name, metric_details))  # Append as a tuple
+
+    # Input placeholders to track current values
+    input_placeholders = {}
+    clear_inputs = st.button("Reset Inputs")  # Button to reset inputs
+
+    # Display input fields and calculate results
+    for metric_name, details in selected_metrics:
+        st.markdown(f"### {metric_name}")
+        st.write(f"**Formula:** {details['formula']}")
+        st.write(f"**Description:** {details['description']}")
+
+        inputs = {}
+        for input_field in details["inputs"]:
+            # Clear inputs if reset is triggered, otherwise retain previous values
+            key = f"{metric_name}_{input_field}"
+            default_value = 0.0 if clear_inputs else input_placeholders.get(key, 0.0)
+            inputs[input_field] = st.number_input(input_field, value=default_value, key=key)
+            input_placeholders[key] = inputs[input_field]  # Save current values
+
+        if st.button(f"Calculate {metric_name}", key=f"calculate_{metric_name}"):
+            result = calculate_metric(metric_name, inputs)
+            if result is not None:
+                st.success(f"**Result:** {result}")
+            else:
+                st.warning("Unable to calculate the metric. Please check your inputs.")
+
 # Function to calculate metrics
 def calculate_metric(metric_name, inputs):
     if metric_name == "Inventory Turnover":
@@ -54,40 +92,6 @@ def calculate_metric(metric_name, inputs):
         return inputs["Total Freight Cost"] / inputs["Total Number of Units Shipped"]
     else:
         return None
-
-# Streamlit App
-def main():
-    st.title("SC Buddy - Supply Chain Calculator")
-    st.sidebar.header("Select Metrics")
-
-    # Checkbox for selecting metrics
-    selected_metrics = []
-    for category, category_metrics in metrics.items():
-        st.sidebar.markdown(f"**{category}**")
-        for metric_name, metric_details in category_metrics.items():
-            if st.sidebar.checkbox(metric_name):
-                selected_metrics.append((metric_name, metric_details))  # Append as a tuple
-
-    # Display input fields and calculate results
-    for metric_name, details in selected_metrics:
-        st.markdown(f"### {metric_name}")
-        st.write(f"**Formula:** {details['formula']}")
-        st.write(f"**Description:** {details['description']}")
-
-        inputs = {}
-        for input_field in details["inputs"]:
-            inputs[input_field] = st.number_input(input_field, value=0.0, key=f"{metric_name}_{input_field}")
-
-        if st.button(f"Calculate {metric_name}", key=f"calculate_{metric_name}"):
-            result = calculate_metric(metric_name, inputs)
-            if result is not None:
-                st.success(f"**Result:** {result}")
-            else:
-                st.warning("Unable to calculate the metric. Please check your inputs.")
-
-    # Reset button
-    if st.button("Reset"):
-        st.experimental_rerun()
 
 # Run the app
 if __name__ == "__main__":
