@@ -1,4 +1,4 @@
-import streamlit as st
+# import streamlit as st
 
 # Define formulas and descriptions for each metric
 metrics = {
@@ -64,22 +64,22 @@ def main():
     selected_metrics = []
     for category, category_metrics in metrics.items():
         st.sidebar.markdown(f"**{category}**")
-        for metric in category_metrics:
-            if st.sidebar.checkbox(metric):
-                selected_metrics.append((metric, category_metrics[metric]))
+        for metric_name, metric_details in category_metrics.items():
+            if st.sidebar.checkbox(metric_name):
+                selected_metrics.append((metric_name, metric_details))  # Append as a tuple
 
     # Display input fields and calculate results
-    for metric, details in selected_metrics:
-        st.markdown(f"### {metric}")
+    for metric_name, details in selected_metrics:
+        st.markdown(f"### {metric_name}")
         st.write(f"**Formula:** {details['formula']}")
         st.write(f"**Description:** {details['description']}")
 
         inputs = {}
         for input_field in details["inputs"]:
-            inputs[input_field] = st.number_input(input_field, value=0.0, key=f"{metric}_{input_field}")
+            inputs[input_field] = st.number_input(input_field, value=0.0, key=f"{metric_name}_{input_field}")
 
-        if st.button(f"Calculate {metric}", key=f"calculate_{metric}"):
-            result = calculate_metric(metric, inputs)
+        if st.button(f"Calculate {metric_name}", key=f"calculate_{metric_name}"):
+            result = calculate_metric(metric_name, inputs)
             if result is not None:
                 st.success(f"**Result:** {result}")
             else:
