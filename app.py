@@ -48,12 +48,20 @@ def main():
     for category, category_metrics in metrics.items():
         st.sidebar.markdown(f"**{category}**")
         for metric_name, metric_details in category_metrics.items():
-            if st.sidebar.checkbox(metric_name):
-                selected_metrics.append((metric_name, metric_details))  # Append as a tuple
+            if st.sidebar.checkbox(metric_name, key=f"select_{metric_name}"):
+                selected_metrics.append((metric_name, metric_details))
 
-    # Input placeholders to track current values
-    input_placeholders = {}
-    clear_inputs = st.button("Reset Inputs")  # Button to reset inputs
+    # Reset mechanism
+    if "reset_triggered" not in st.session_state:
+        st.session_state.reset_triggered = False
+
+    if st.button("Reset Inputs"):
+        st.session_state.reset_triggered = True
+        for key in st.session_state.keys():
+            if key.startswith("input_"):
+                st.session_state[key] = 0.0
+    else:
+        st.session_state.reset_triggered = False
 
     # Display input fields and calculate results
     for metric_name, details in selected_metrics:
@@ -63,11 +71,16 @@ def main():
 
         inputs = {}
         for input_field in details["inputs"]:
-            # Clear inputs if reset is triggered, otherwise retain previous values
-            key = f"{metric_name}_{input_field}"
-            default_value = 0.0 if clear_inputs else input_placeholders.get(key, 0.0)
-            inputs[input_field] = st.number_input(input_field, value=default_value, key=key)
-            input_placeholders[key] = inputs[input_field]  # Save current values
+            key = f"input_{metric_name}_{input_field}"
+            # Use session state to manage input values
+            if key not in st.session_state:
+                st.session_state[key] = 0.0
+
+            inputs[input_field] = st.number_input(
+                input_field,
+                value=st.session_state[key],
+                key=key
+            )
 
         if st.button(f"Calculate {metric_name}", key=f"calculate_{metric_name}"):
             result = calculate_metric(metric_name, inputs)
@@ -78,19 +91,22 @@ def main():
 
 # Function to calculate metrics
 def calculate_metric(metric_name, inputs):
-    if metric_name == "Inventory Turnover":
-        return inputs["Cost of Goods Sold (COGS)"] / inputs["Average Inventory"]
-    elif metric_name == "Inventory Days of Supply":
-        return inputs["Average Inventory"] / inputs["Average Daily Demand"]
-    elif metric_name == "Fill Rate":
-        return inputs["Number of Orders Filled Completely"] / inputs["Total Number of Orders"]
-    elif metric_name == "On-Time Delivery Rate":
-        return inputs["Number of Deliveries Made On-Time"] / inputs["Total Number of Deliveries"]
-    elif metric_name == "Transportation Cost as a Percentage of Revenue":
-        return inputs["Transportation Cost"] / inputs["Revenue"]
-    elif metric_name == "Freight Cost Per Unit":
-        return inputs["Total Freight Cost"] / inputs["Total Number of Units Shipped"]
-    else:
+    try:
+        if metric_name == "Inventory Turnover":
+            return inputs["Cost of Goods Sold (COGS)"] / inputs["Average Inventory"]
+        elif metric_name == "Inventory Days of Supply":
+            return inputs["Average Inventory"] / inputs["Average Daily Demand"]
+        elif metric_name == "Fill Rate":
+            return inputs["Number of Orders Filled Completely"] / inputs["Total Number of Orders"]
+        elif metric_name == "On-Time Delivery Rate":
+            return inputs["Number of Deliveries Made On-Time"] / inputs["Total Number of Deliveries"]
+        elif metric_name == "Transportation Cost as a Percentage of Revenue":
+            return inputs["Transportation Cost"] / inputs["Revenue"]
+        elif metric_name == "Freight Cost Per Unit":
+            return inputs["Total Freight Cost"] / inputs["Total Number of Units Shipped"]
+        else:
+            return None
+    except ZeroDivisionError:
         return None
 
 # Run the app
